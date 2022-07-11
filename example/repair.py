@@ -1,3 +1,6 @@
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 import torch, torchvision, time, math, numpy as np
 from REASSURE.ExperimentModels import MLP
 from REASSURE.Repair import REASSURERepair
@@ -21,8 +24,8 @@ def Repair_HCAS(repair_num, n):
     input_dim = 3
     input_boundary = [np.block([[np.eye(input_dim)], [-np.eye(input_dim)]]),
                       np.block([np.array([65000, 65000, math.pi]), np.array([65000, 65000, math.pi])])]
-    target_model = HCAS_Model('TrainedNetworks/HCAS_rect_v6_pra1_tau05_25HU_3000.nnet')
-    buggy_inputs = torch.load('cex_pra1_tau05.pt')
+    target_model = HCAS_Model('example/TrainedNetworks/HCAS_rect_v6_pra1_tau05_25HU_3000.nnet')
+    buggy_inputs = torch.load('example/cex_pra1_tau05.pt')
     buggy_inputs, right_labels = buggy_inputs[:repair_num], torch.ones([repair_num], dtype=torch.long)*4
     output_constraints = constraints_from_labels(right_labels, dim=5)
     success_rate(target_model, buggy_inputs, right_labels, is_print=1)
