@@ -10,6 +10,8 @@
 
 ## Screenshot
 
+![result](https://raw.githubusercontent.com/fufeisi/ICLR2022_REASSURE/main/example/REASSURE.png?token=GHSAT0AAAAAABWPY7CVAI7YIOZULERJMWZUYWMV4LQ)
+
 ## Quick Start
 Apply REASSURE on a pre-train HCAS model:
  ```python3
