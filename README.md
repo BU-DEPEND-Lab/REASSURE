@@ -26,11 +26,18 @@ And a total of 87 buggy linear regions were found. We apply both REASSURE and PR
 ![specification](figures/specification.png)
 
 ![compare](figures/compare.png)
+## Installation
+ ```python3
+ pip install -r requirements.txt
+ ```
+
 ## Running Examples
 Apply REASSURE on a pre-train HCAS model:
  ```python3
  python ./examples/repair.py
  ```
+### Screenshot
+![result](figures/REASSURE.png)
 
 ## Cite our paper
 ```
