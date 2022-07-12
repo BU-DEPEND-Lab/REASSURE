@@ -1,7 +1,5 @@
 # REASSURE
 [![contact](https://img.shields.io/badge/contact-fufeisi@bu.edu-coral)](fufeisi@bu.edu)
-![python>=3.10](https://img.shields.io/badge/python->=3.10-informational.svg)
-![pypi->=1.0.13](https://img.shields.io/badge/pypi->=1.0.13-informational.svg)
 ![pytorch>=1.11](https://img.shields.io/badge/pytorch->=1.11-informational.svg)
 ![torchvision>=0.12](https://img.shields.io/badge/torchvision->=0.12-informational.svg)
 
@@ -9,7 +7,7 @@
 
 ![REASSURE](figures/repair.png)
 
-> REASSURE is a novel methodology for repairing neural networks that use ReLU activation functions.
+REASSURE is a novel methodology for repairing neural networks that use ReLU activation functions.
 Our approach applies only a localized change in the function space while still guaranteeing the removal of the buggy behavior.
 By leveraging the piecewise linear nature of ReLU networks, 
 our approach can efficiently construct a patch network tailored to the linear region where the buggy input resides, 
@@ -27,6 +25,7 @@ And a total of 87 buggy linear regions were found. We apply both REASSURE and PR
 
 ![compare](figures/compare.png)
 ## Installation
+Clone this repository and install the required packages.
  ```python3
  pip install -r requirements.txt
  ```
@@ -36,7 +35,7 @@ Apply REASSURE on a pre-train HCAS model:
  ```python3
  python ./examples/repair.py
  ```
-### Screenshot
+## Screenshot
 ![result](figures/REASSURE.png)
 
 ## Cite our paper
