@@ -40,10 +40,12 @@ Apply REASSURE on a pre-train HCAS model:
 
 ## Cite our paper
 ```
-@article{fu2021sound,
-  title={Sound and Complete Neural Network Repair with Minimality and Locality Guarantees},
-  author={Fu, Feisi and Li, Wenchao},
-  journal={arXiv preprint arXiv:2110.07682},
-  year={2021}
+@inproceedings{
+fu2022sound,
+title={Sound and Complete Neural Network Repair with Minimality and Locality Guarantees},
+author={Feisi Fu and Wenchao Li},
+booktitle={International Conference on Learning Representations},
+year={2022},
+url={https://openreview.net/forum?id=xS8AMYiEav3}
 }
 ```
