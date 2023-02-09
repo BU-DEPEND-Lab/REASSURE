@@ -2,69 +2,74 @@ import torch, numpy as np, pathlib, os, random
 
 
 def find_buggy_inputs(dataloader, model, repair_num):
-    """For a neural network, we find it's buggy input from a dataset as well as a cut point,
-     to seperate the test set."""
+    """Find buggy inputs and the corresponding correct labels for a neural network from a dataset, with a specified number of repair inputs."""
     model.eval()
-    buggy_inputs, right_label = [], []
+    buggy_inputs, correct_labels = [], []
     with torch.no_grad():
         for X, y in dataloader:
-            pred = model(X)
-            buggy_index = [i for i in range(len(X)) if pred[i].argmax() != y[i]]
-            buggy_inputs += X[buggy_index]
-            right_label += y[buggy_index]
+            predictions = model(X)
+            buggy_indices = [i for i in range(len(X)) if predictions[i].argmax() != y[i]]
+            buggy_inputs += [X[i] for i in buggy_indices]
+            correct_labels += [y[i] for i in buggy_indices]
             if len(buggy_inputs) >= repair_num:
-                buggy_inputs, right_label = buggy_inputs[:repair_num], right_label[:repair_num]
+                buggy_inputs, correct_labels = buggy_inputs[:repair_num], correct_labels[:repair_num]
                 break
     if len(buggy_inputs) < repair_num:
-        print('Not find enough buggy points!')
-    return torch.stack(buggy_inputs), torch.stack(right_label)
+        print('Not enough buggy inputs found!')
+    return torch.stack(buggy_inputs), torch.stack(correct_labels)
 
 
-def constraints_from_labels(right_labels, dim=10):
-    """For a classification problem, we translate the specification of 'class should be i' to matrix constraints."""
-    A_out, b_out = [], []
-    for k in right_labels:
-        e = np.zeros([1, dim])
-        e[0][k] = 1
-        A = np.eye(dim) - np.matmul(np.ones([dim, 1]), e)
-        A_out.append(np.delete(A, k, 0))
-        b_out.append(np.zeros(dim-1))
-    return A_out, b_out
+def constraints_from_labels(correct_labels, dim=10):
+    """Translate the specification of a correct class label into a set of matrix constraints for a classification problem."""
+    A_list, b_list = [], []
+    for label in correct_labels:
+        row = np.zeros([1, dim])
+        row[0][label] = 1
+        A = np.eye(dim) - np.matmul(np.ones([dim, 1]), row)
+        A_list.append(np.delete(A, label, 0))
+        b_list.append(np.zeros(dim-1))
+    return A_list, b_list
 
 
-def test_diff_on_dataloader(dataloader, model1, model2):
-    """Compute the average/maximum norm difference between two neural network"""
+
+def compare_models_on_dataloader(dataloader, model1, model2):
+    """Calculate the average and maximum norm differences between two neural networks on a dataset."""
     total = 0
-    diff_inf_sum, diff_2_sum = torch.tensor(0.0), torch.tensor(0.0)
+    avg_inf_norm_difference, avg_l2_norm_difference = torch.tensor(0.0), torch.tensor(0.0)
     with torch.no_grad():
         for X, _ in dataloader:
-            pred1, pred2 = model1(X.float()), model2(X.float())
-            diff = torch.softmax(pred1, dim=-1) - torch.softmax(pred2, dim=-1)
-            diff_inf = torch.norm(diff, dim=-1, p=np.inf)
-            diff_2 = torch.norm(diff, dim=-1, p=2)
+            predictions1, predictions2 = model1(X.float()), model2(X.float())
+            softmax_difference = torch.softmax(predictions1, dim=-1) - torch.softmax(predictions2, dim=-1)
+            inf_norm_difference = torch.norm(softmax_difference, dim=-1, p=np.inf)
+            l2_norm_difference = torch.norm(softmax_difference, dim=-1, p=2)
             total += len(X)
-            diff_inf_sum += diff_inf.sum()
-            diff_2_sum += diff_2.sum()
-    return diff_inf_sum/total, diff_2_sum/total
+            avg_inf_norm_difference += inf_norm_difference.sum()
+            avg_l2_norm_difference += l2_norm_difference.sum()
+    return avg_inf_norm_difference / total, avg_l2_norm_difference / total
 
 
-def success_repair_rate(model, buggy_inputs, right_label, is_print=False):
+
+def calculate_repair_success_rate(model, buggy_inputs, right_label, print_result=False):
+    """Calculate the success rate of repairing buggy inputs using a model."""
     with torch.no_grad():
-        pred = model(buggy_inputs)
-        correct = (pred.argmax(1) == right_label).type(torch.float).sum().item()
-    if is_print:
-        print('success repair rate:', correct/len(buggy_inputs))
-    return correct/len(buggy_inputs)
+        predictions = model(buggy_inputs)
+        correct_predictions = (predictions.argmax(dim=1) == right_label).type(torch.float).sum().item()
+    success_rate = correct_predictions / len(buggy_inputs)
+    if print_result:
+        print('Success rate of repairing buggy inputs:', success_rate)
+    return success_rate
 
 
-def test_acc(dataloader, model):
-    correct, total_num = 0, 0
+
+def evaluate_model_accuracy(data_loader, model):
+    """Evaluate the accuracy of a neural network on a given dataset"""
+    correct, total = 0, 0
     with torch.no_grad():
-        for i, (X, y) in enumerate(dataloader):
-            if len(y.size()) > 1:
+        for X, y in data_loader:
+            if y.dim() > 1:
                 y = y.argmax(1)
-            total_num += len(X)
-            # X, y = X.to(device), y.to(device)
-            pred = model(X.float())
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-    return correct/total_num
+            total += len(X)
+            predictions = model(X.float())
+            correct += (predictions.argmax(1) == y).type(torch.float).sum().item()
+    return correct / total
+

@@ -1,7 +1,7 @@
 import torch, time, torch.nn as nn, numpy as np
 from scipy.optimize import linprog
 import multiprocessing
-from REASSURE.Tools import linearize_model, linear_region_from_input, dig_block
+from REASSURE.Tools import linearize_model, get_linear_region, construct_block_matrix
 from REASSURE.RepairModules import SupportNet, SingleRegionRepairNet, NetSum
 
 
@@ -12,21 +12,19 @@ class REASSURERepair:
         self.n = n
 
     def point_wise_repair(self, buggy_inputs, output_constraints, core_num=1):
-        print('Working on {} cores.'.format(core_num))
-        pool = multiprocessing.Pool(core_num)
-        arg_list = [[buggy_inputs[i], [output_constraints[0][i], output_constraints[1][i]]] for i in range(len(buggy_inputs))]
-        repair_net_list = pool.starmap(self._repair_one_area, arg_list)
-        pool.close()
-        # repair_net_list = []
-        # for i in range(len(buggy_inputs)):
-        #     repair_net_list.append(self._repair_one_area(buggy_inputs[i], [output_constraints[0][i], output_constraints[1][i]]))
+        print(f'Working on {core_num} cores.')
+        with multiprocessing.Pool(core_num) as pool:
+            repair_net_list = pool.starmap(
+                self._repair_one_area,
+                [(buggy_inputs[i], [output_constraints[0][i], output_constraints[1][i]]) for i in range(len(buggy_inputs))]
+            )
         return NetSum(self.model, repair_net_list)
 
 
     def _repair_one_area(self, buggy_input, output_constraint):
         buggy_input = buggy_input.view(1, -1)
         buggy_input.requires_grad = True
-        patch_area = linear_region_from_input(
+        patch_area = get_linear_region(
             buggy_input, self.model.allHiddenNeurons(buggy_input).view(-1), self.input_boundary)
         A, b = patch_area
         # temp = np.matmul(A, buggy_input.detach().squeeze().numpy()) - b
@@ -54,20 +52,20 @@ class REASSURERepair:
         # temp = linprog(np.ones(in_dim), A_ub=A, b_ub=b, bounds=[None, None])
         # print(temp.message)
 
-        A_eq = np.block([[dig_block([A.transpose() for _ in range(out_dim)]), dig_block([A.transpose() for _ in range(out_dim)]),
+        A_eq = np.block([[construct_block_matrix([A.transpose() for _ in range(out_dim)]), construct_block_matrix([A.transpose() for _ in range(out_dim)]),
                 np.zeros([in_dim*out_dim, in_cons_num*out_cons_num]), np.zeros([in_dim*out_dim, out_dim]), np.zeros([in_dim*out_dim, 1])],
              [-np.block([[A_out[i, j]*A.transpose() for j in range(out_dim)] for i in range(out_cons_num)]),
-                np.zeros([in_dim*out_cons_num, in_cons_num*out_dim]), dig_block([A.transpose() for _ in range(out_cons_num)]),
+                np.zeros([in_dim*out_cons_num, in_cons_num*out_dim]), construct_block_matrix([A.transpose() for _ in range(out_cons_num)]),
               np.zeros([in_dim*out_cons_num, out_dim]), np.zeros([in_dim*out_cons_num, 1])]
              ])
         b_eq = np.block([np.zeros(in_dim*out_dim), np.block([np.matmul(A_out[i], cf) for i in range(out_cons_num)])])
         bounds = [None, None]
-        A_ub = np.block([[dig_block([b for _ in range(out_dim)]), np.zeros([out_dim, in_cons_num*out_dim]), np.zeros([out_dim, in_cons_num*out_cons_num]),
+        A_ub = np.block([[construct_block_matrix([b for _ in range(out_dim)]), np.zeros([out_dim, in_cons_num*out_dim]), np.zeros([out_dim, in_cons_num*out_cons_num]),
                           np.eye(out_dim), -np.ones([out_dim, 1])],
-                         [np.zeros([out_dim, in_cons_num*out_dim]), dig_block([b for _ in range(out_dim)]), np.zeros([out_dim, in_cons_num*out_cons_num]),
+                         [np.zeros([out_dim, in_cons_num*out_dim]), construct_block_matrix([b for _ in range(out_dim)]), np.zeros([out_dim, in_cons_num*out_cons_num]),
                           -np.eye(out_dim), -np.ones([out_dim, 1])],
                          [np.zeros([out_cons_num, in_cons_num*out_dim]), np.zeros([out_cons_num, in_cons_num*out_dim]),
-                          dig_block([b for _ in range(out_cons_num)]), np.block([[A_out[i]]for i in range(out_cons_num)]), np.zeros([out_cons_num, 1])],
+                          construct_block_matrix([b for _ in range(out_cons_num)]), np.block([[A_out[i]]for i in range(out_cons_num)]), np.zeros([out_cons_num, 1])],
                          [-np.eye(in_cons_num*out_dim*2+in_cons_num*out_cons_num), np.zeros([in_cons_num*out_dim*2+in_cons_num*out_cons_num, out_dim+1])]
                          ])
         b_ub = np.block([np.zeros(out_dim), np.zeros(out_dim), np.block([b_out[i] - np.matmul(A_out[i], df) for i in range(out_cons_num)]),
@@ -76,12 +74,14 @@ class REASSURERepair:
         solution = linprog(c=objective, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=bounds)
         # if not solution.success:
         #     print('There is a problem with solving linear programming: ', solution.message)
-        temp = np.block([dig_block([A.transpose() for _ in range(out_dim)]),
+        temp = np.block([construct_block_matrix([A.transpose() for _ in range(out_dim)]),
                         np.zeros([in_dim*out_dim, in_cons_num*out_dim+in_cons_num*out_cons_num+out_dim+1])])
         c_x = np.stack([temp[i*in_dim:(i+1)*in_dim] for i in range(out_dim)])
         d_x = np.block([np.zeros([out_dim, in_cons_num*out_dim*2+in_cons_num*out_cons_num]), np.eye(out_dim),
                         np.zeros([out_dim, 1])])
         return np.matmul(c_x, solution.x), np.matmul(d_x, solution.x)
+
+
 
 
 if __name__ == '__main__':
@@ -99,7 +99,7 @@ if __name__ == '__main__':
         A = np.block([[A], [np.eye(in_dim)], [-np.eye(in_dim)]])
         b = np.block([b, np.ones(in_dim), np.zeros(in_dim)])
         cf, df = np.random.random([out_dim, in_dim]), np.random.random(out_dim)
-        # print(dig_block([A.transpose() for _ in range(out_dim)]))
+        # print(construct_block_matrix([A.transpose() for _ in range(out_dim)]))
         start = time.time()
         solution = R.repair_via_LP([A, b], [A_out, b_out], [cf, df])
         c, d = solution
