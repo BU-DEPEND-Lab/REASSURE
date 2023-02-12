@@ -19,7 +19,7 @@ Clone this repository and install the required packages.
  pip install -r requirements.txt
  ```
 
-## Running Examples
+## Example
 Use REASSURE to repair a pre-trained HCAS model:
  ```python3
  python ./examples/repair.py
