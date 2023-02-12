@@ -8,7 +8,7 @@ python ./Experiments/MNIST/PNN_MNIST.py
 Test Acc before repair: 98.0%
 Working on 10 cores.
 Time cost: 259.69484424591064
-success repair rate: 1.0
+Repair success rate: 100%
 Average inf Diff(on patch area): tensor(0.1503)
 Average L2 Diff(on patch area): tensor(0.2071)
 Average inf Diff(on all): tensor(0.0001)
@@ -18,7 +18,7 @@ Test Acc after repair: 98.1%
 Test Acc before repair: 98.0%
 Working on 10 cores.
 Time cost: 433.57593607902527
-success repair rate: 1.0
+Repair success rate: 100%
 Average inf Diff(on patch area): tensor(0.1257)
 Average L2 Diff(on patch area): tensor(0.1728)
 Average inf Diff(on all): tensor(0.0002)
@@ -28,7 +28,7 @@ Test Acc after repair: 98.2%
 Test Acc before repair: 98.0%
 Working on 10 cores.
 Time cost: 1184.2179553508759
-success repair rate: 1.0
+Repair success rate: 100%
 Average inf Diff(on patch area): tensor(0.1420)
 Average L2 Diff(on patch area): tensor(0.1953)
 Average inf Diff(on all): tensor(0.0006)
@@ -38,7 +38,7 @@ Test Acc after repair: 98.5%
 Test Acc before repair: 98.0%
 Working on 10 cores.
 Time cost: 2117.45366024971
-success repair rate: 1.0
+Repair success rate: 100%
 Average inf Diff(on patch area): tensor(0.1264)
 Average L2 Diff(on patch area): tensor(0.1731)
 Average inf Diff(on all): tensor(0.0012)
