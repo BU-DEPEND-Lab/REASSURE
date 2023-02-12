@@ -1,5 +1,5 @@
 ## Running Examples
-Apply REASSURE on a pre-train MNIST model:
+Use REASSURE to repair a pre-trained MNIST model:
 ```python3
 python ./Experiments/MNIST/PNN_MNIST.py
 ```
@@ -47,7 +47,7 @@ Test Acc after repair: 99.0%
 
 ```
 
-Apply REASSURE on a pre-train Watermark model:
+Use REASSURE to repair a pre-trained watermarked model:
 ```python3
 python ./Experiments/Watermark/MNIST.py
 ```
