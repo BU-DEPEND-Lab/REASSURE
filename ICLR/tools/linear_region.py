@@ -150,7 +150,7 @@ def linearize_NN_from_pattern(pattern, layers):
 
 def verify(A, b, pattern, layers, right_label=4):
     res = True
-    P, ql, qu = [item[0] for item in property([right_label], 5)]
+    P, ql, qu = [item[0] for item in specification_matrix_from_labels([right_label], 5)]
     C, d = linearize_NN_from_pattern(pattern, layers)
     for i in range(len(P)):
         # res = res and (solve_LP(np.matmul(P[i], C), A, b, None) + np.matmul(P[i], d) >= ql[i])

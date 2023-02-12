@@ -57,4 +57,8 @@ Use REASSURE to repair a pre-trained ImageNet model:
 python ./Experiments/ImageNet/PNN_AlexNet.py
 ```
 
+Use REASSURE to repair a pre-trained HCAS model:
+```python3
+python ./Experiments/HCAS/PNN_HCAS_area_repair.py
+```
 
