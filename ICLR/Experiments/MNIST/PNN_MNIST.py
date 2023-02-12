@@ -54,6 +54,6 @@ def PNN_MNIST(repair_num, n, num_core, remove_redundant_constraint=False):
 
 
 if __name__ == '__main__':
-    for num in [10]:
+    for num in [10, 20, 50, 100]:
         print('-'*50, ';repair num =', num, '-'*50)
         PNN_MNIST(num, 0.5, num_core=10, remove_redundant_constraint=False)
