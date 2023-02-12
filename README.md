@@ -22,7 +22,7 @@ Clone this repository and install the required packages.
 ## Example
 Use REASSURE to repair a pre-trained HCAS model (details in the paper):
  ```python3
- python ./examples/repair.py
+ python ./example/repair.py
  ```
 ## Screenshot
 ![result](figures/REASSURE.png)
