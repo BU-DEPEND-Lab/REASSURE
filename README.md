@@ -13,17 +13,6 @@ By leveraging the piecewise linear nature of ReLU networks,
 our approach can efficiently construct a patch network tailored to the linear region where the buggy input resides, 
 which when combined with the original network, provably corrects the behavior on the buggy input.
 
-## Area Repairs: HCAS
-Consider the following area repair problem where the target neural network is an HCAS network with 3 input nodes, 
-5 hidden layers with 25 nodes in each hidden layer, and a final output layer with 5 nodes. 
-The HCAS network outputs one of five possible control advisories: 'Strong left', 'Weak left', 'Clear-of-Conflict', 'Weak right' or 'Strong right'.
-
-By sampling the input region as specified in the specification, a total of 87 buggy linear regions were found. 
-We compare the performance of REASSURE with that of PRDNN for repairing these buggy linear regions. 
-
-![specification](figures/specification.png)
-
-![compare](figures/compare.png)
 ## Installation
 Clone this repository and install the required packages.
  ```python3
