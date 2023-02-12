@@ -14,11 +14,11 @@ our approach can efficiently construct a patch network tailored to the linear re
 which when combined with the original network, provably corrects the behavior on the buggy input.
 
 ## Area Repairs: HCAS
-We consider an area repair problem where the target neural network is an HCAS network with 3 input nodes, 
+Consider the following area repair problem where the target neural network is an HCAS network with 3 input nodes, 
 5 hidden layers with 25 nodes in each hidden layer, and a final output layer with 5 nodes. 
 The HCAS network outputs one of five possible control advisories: 'Strong left', 'Weak left', 'Clear-of-Conflict', 'Weak right' or 'Strong right'.
 
-As an example, cnsider the following specification. By sampling the input region as specified in this specification,  a total of 87 buggy linear regions were found. 
+By sampling the input region as specified in the specification, a total of 87 buggy linear regions were found. 
 We compare the performance of REASSURE with that of PRDNN for repairing these buggy linear regions. 
 
 ![specification](figures/specification.png)
