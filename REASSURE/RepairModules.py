@@ -9,42 +9,42 @@ class SupportNet(nn.Module):
         :param A, b: H-rep of a polytope.
         :param n: To control the side effect. Choose a large number until the 100% repair rate.
         """
-        # Ax <= b
         super(SupportNet, self).__init__()
         assert len(A) == len(b)
-        A = torch.tensor(A)
-        b = torch.tensor(b)
-        assert len(A.size()) == 2
-        layer = nn.Linear(*A.size())
-        layer.weight = torch.nn.Parameter(-A)
-        layer.bias = torch.nn.Parameter(b)
-        self.layer, self.l, self.n = layer, len(A), n
+        self.A = torch.tensor(A, dtype=torch.float32)
+        self.b = torch.tensor(b, dtype=torch.float32)
+        assert len(self.A.size()) == 2
+        self.layer = nn.Linear(*self.A.size())
+        self.layer.weight = torch.nn.Parameter(-self.A)
+        self.layer.bias = torch.nn.Parameter(self.b)
+        self.n = n
 
     def forward(self, x):
-        s = - self.l + 1
         y = self.layer(x)
-        s += torch.sum(nn.ReLU()(self.n * y + 1), -1, keepdim=True) - torch.sum(nn.ReLU()(self.n * y), -1, keepdim=True)
-        return nn.ReLU()(s)
+        s = torch.sum(torch.relu(self.n * y + 1), -1, keepdim=True) - torch.sum(torch.relu(self.n * y), -1, keepdim=True)
+        return torch.relu(s - self.A.shape[0] + 1)
 
 
 class SingleRegionRepairNet(nn.Module):
     def __init__(self, g, c, d, input_boundary):
         super(SingleRegionRepairNet, self).__init__()
-        self.K = 0
-        for i in range(len(d)):
-            self.K = max(self.K, abs(
-                linprog(c=c[i], A_ub=input_boundary[0], b_ub=input_boundary[1], bounds=[None, None]).fun+d[i]))
-            self.K = max(self.K, abs(
-                linprog(c=-c[i], A_ub=input_boundary[0], b_ub=input_boundary[1], bounds=[None, None]).fun-d[i]))
-        c, d = torch.from_numpy(c).float(), torch.from_numpy(d).float()
-        self.p = nn.Linear(*c.size())
-        self.p.weight = torch.nn.Parameter(c)
-        self.p.bias = torch.nn.Parameter(d)
+        c, d = torch.tensor(c, dtype=torch.float32), torch.tensor(d, dtype=torch.float32)
+        self.p = nn.Linear(*c.shape)
+        self.p.weight = nn.Parameter(c)
+        self.p.bias = nn.Parameter(d)
         self.g = g
+        self.K = self._compute_K(c, d, input_boundary)
+
+    def _compute_K(self, c, d, input_boundary):
+        K = 0
+        for i in range(d.shape[0]):
+            K = max(K, abs(linprog(c=c[i], A_ub=input_boundary[0], b_ub=input_boundary[1], bounds=[None, None]).fun + d[i]))
+            K = max(K, abs(linprog(c=-c[i], A_ub=input_boundary[0], b_ub=input_boundary[1], bounds=[None, None]).fun - d[i]))
+        return K
 
     def forward(self, x):
-        return nn.ReLU()(self.p(x) + self.K*self.g(x)-self.K) \
-               - nn.ReLU()(-self.p(x) + self.K*self.g(x)-self.K)
+        return torch.relu(self.p(x) + self.K * self.g(x) - self.K) - torch.relu(-self.p(x) + self.K * self.g(x) - self.K)
+
 
 
 class NetSum(torch.nn.Module):
