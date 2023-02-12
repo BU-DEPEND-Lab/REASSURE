@@ -52,7 +52,7 @@ Use REASSURE to repair a pre-trained watermarked model:
 python ./Experiments/Watermark/MNIST.py
 ```
 
-Apply REASSURE on a pre-train ImageNet model:
+Use REASSURE to repair a pre-trained ImageNet model:
 ```python3
 python ./Experiments/ImageNet/PNN_AlexNet.py
 ```
