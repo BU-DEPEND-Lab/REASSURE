@@ -231,6 +231,7 @@ class MultiPointsPNN:
     def compute(self, core_num=multiprocessing.cpu_count()-1, is_gurobi=False):
         assert (self.buggy_points is not None) or (self.linear_regions is not None)
         print('Working on {} cores.'.format(core_num))
+        multiprocessing.set_start_method('spawn', force=True)
         pool = multiprocessing.Pool(core_num)
         if self.buggy_points is not None:
             arg_list = [[self.buggy_points[i], self.P[i], self.ql[i], self.qu[i], is_gurobi] for i in
